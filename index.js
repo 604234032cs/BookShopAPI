@@ -12,6 +12,7 @@ firebase.initializeApp({
   databaseURL: "https://comscibookshop-6d25d.firebaseio.com"
 });
 
+
 var db = firebase.database();
 
 var port = process.env.PORT || 3000;
@@ -39,12 +40,11 @@ app.get('/books', function (req, res) {
 app.get('/book/:bookid', function (req, res) {
   	
 	res.setHeader('Content-Type', 'application/json');
-
 	var bookid = Number(req.params.bookid);
-
 	var booksReference = db.ref("books");
 
 	//Attach an asynchronous callback to read the data
+
 	booksReference.orderByChild("bookid").equalTo(bookid).on("child_added", 
 	  function(snapshot) {
 			console.log(snapshot.val());
@@ -59,16 +59,83 @@ app.get('/book/:bookid', function (req, res) {
 
 });
 
+app.put('/book', function (req, res) {
+  
+	console.log("HTTP Put Request");
 
+	var bookid = req.body.bookid;
+	var title = req.body.title;
+	var author = req.body.author;
+	var isbn=req.body.isbn;
+	var pageCount=req.body.pageCount;
+	var publishedDate=req.body.publishedDate;
+	var thumbnailUrl=req.body.thumbnailUrl;
+	var shortDescription=req.body.shortDescription;
+	var category=req.body.category;
 
-
-app.post('/book', function (req, res) {
-   console.log("HTTP Post");
+	var referencePath = '/books/'+bookid+'/';
 	
+
+	//Update to Firebase
+	var bookReference = db.ref(referencePath);
+	if(bookReference !== null) {
+
+	bookReference.set({bookid:bookid, title: title, author: author, isbn: isbn, pageCount: pageCount, publishedDate: publishedDate, thumbnailUrl: thumbnailUrl, shortDescription: shortDescription, category: category}, 
+				 function(error) {
+					if (error) {
+						res.send("Data could not be saved." + error);
+					} 
+					else {
+						res.send("Update book successfully." );
+					}
+			});
+	}
+
+
 });
 
-app.delete('/book', function (req, res) {
-   console.log("HTTP Delete");  	
+app.post('/book', function (req, res) {
+  
+	var bookid = req.body.bookid;
+	var title = req.body.title;
+	var author = req.body.author;
+	var isbn=req.body.isbn;
+	var pageCount=req.body.pageCount;
+	var publishedDate=req.body.publishedDate;
+	var thumbnailUrl=req.body.thumbnailUrl;
+	var shortDescription=req.body.shortDescription;
+	var category=req.body.category;
+
+	var referencePath = '/books/'+bookid+'/';
+	
+
+	//Add to Firebase
+	var bookReference = db.ref(referencePath);
+	if(bookReference !== null) {
+
+	bookReference.update({bookid:bookid, title: title, author: author, isbn: isbn, pageCount: pageCount, publishedDate: publishedDate, thumbnailUrl: thumbnailUrl, shortDescription: shortDescription, category: category}, 
+				 function(error) {
+					if (error) {
+						res.send("Data could not be saved." + error);
+					} 
+					else {
+						res.send("Add book successfully." );
+					}
+			});
+	}
+});
+
+app.delete('/book/:bookid', function (req, res) {
+  	var bookid = req.body.bookid;
+	var bookid = Number(req.params.bookid);
+	var referencePath = '/books/'+bookid+'/';
+	
+	//Delete to Firebase
+	var bookReference = db.ref(referencePath);
+	if(bookReference !== null) {
+		bookReference.remove();
+		res.send("Delete book successfully." );
+	}
 });
 
 app.listen(port, function () {
